@@ -1,4 +1,4 @@
--- Replaces the default character with a flying probe drone.
+-- Replaces the default character with a flying probe scout ship.
 -- Controls: WASD = horizontal, Space = up, LeftShift = down, mouse = look.
 
 local Players = game:GetService("Players")
@@ -11,12 +11,12 @@ local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 local camera = workspace.CurrentCamera
 
--- Kill default movement and animations
+-- Kill default movement
 humanoid.PlatformStand = true
 
--- Hide all default character parts
+-- Hide all default character parts; rootPart becomes the invisible physics anchor
 for _, desc in ipairs(character:GetDescendants()) do
-	if desc:IsA("BasePart") and desc ~= rootPart then
+	if desc:IsA("BasePart") then
 		desc.Transparency = 1
 		desc.CanCollide = false
 	elseif desc:IsA("Decal") then
@@ -24,73 +24,103 @@ for _, desc in ipairs(character:GetDescendants()) do
 	end
 end
 
--- Drone core — sphere
-rootPart.Transparency = 0
-rootPart.Material = Enum.Material.Neon
-rootPart.Color = Color3.fromRGB(0, 200, 255)
-rootPart.CanCollide = false
-
-local mesh = Instance.new("SpecialMesh")
-mesh.MeshType = Enum.MeshType.Sphere
-mesh.Scale = Vector3.new(1.2, 1.2, 1.2)
-mesh.Parent = rootPart
-
-local coreGlow = Instance.new("PointLight")
-coreGlow.Brightness = 2
-coreGlow.Range = 25
-coreGlow.Color = Color3.fromRGB(0, 200, 255)
-coreGlow.Parent = rootPart
-
--- Build 4 thruster arms after physics settles
+-- Wait for character physics to settle before building the ship
 task.wait()
 
-local thrusterOffsets = {
-	Vector3.new( 2.5, 0,  2.5),
-	Vector3.new(-2.5, 0,  2.5),
-	Vector3.new( 2.5, 0, -2.5),
-	Vector3.new(-2.5, 0, -2.5),
-}
+-- Helper: create a part welded to rootPart at a local offset
+local function attach(part, localPos, localCFrame)
+	part.CanCollide = false
+	part.Anchored = false
+	part.CFrame = rootPart.CFrame * (localCFrame or CFrame.new(localPos))
+	part.Parent = character
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = rootPart
+	w.Part1 = part
+	w.Parent = rootPart
+end
 
-for _, offset in ipairs(thrusterOffsets) do
-	local tipPos = rootPart.Position + offset
-	local armCenter = rootPart.Position + offset * 0.5
+local DARK_HULL  = Color3.fromRGB(30,  38,  52)
+local MID_HULL   = Color3.fromRGB(45,  55,  72)
+local NEON_BLUE  = Color3.fromRGB(0,  200, 255)
 
-	-- Strut arm
-	local arm = Instance.new("Part")
-	arm.Size = Vector3.new(0.22, 0.22, offset.Magnitude * 0.82)
-	arm.Material = Enum.Material.Metal
-	arm.Color = Color3.fromRGB(35, 45, 60)
-	arm.CanCollide = false
-	arm.Anchored = false
-	arm.CFrame = CFrame.lookAt(armCenter, tipPos)
-	arm.Parent = character
+-- Main hull — elongated body, nose faces -Z (forward)
+local hull = Instance.new("Part")
+hull.Size = Vector3.new(2.8, 1, 7)
+hull.Material = Enum.Material.Metal
+hull.Color = DARK_HULL
+attach(hull, Vector3.new(0, 0, 0))
 
-	local armWeld = Instance.new("WeldConstraint")
-	armWeld.Part0 = rootPart
-	armWeld.Part1 = arm
-	armWeld.Parent = rootPart
+-- Raised cockpit ridge along the top front half
+local cockpit = Instance.new("Part")
+cockpit.Size = Vector3.new(1.6, 0.6, 3.5)
+cockpit.Material = Enum.Material.SmoothPlastic
+cockpit.Color = MID_HULL
+attach(cockpit, Vector3.new(0, 0.7, -1.2))
 
-	-- Thruster node
-	local tip = Instance.new("Part")
-	tip.Shape = Enum.PartType.Ball
-	tip.Size = Vector3.new(0.65, 0.65, 0.65)
-	tip.Material = Enum.Material.Neon
-	tip.Color = Color3.fromRGB(0, 200, 255)
-	tip.CanCollide = false
-	tip.Anchored = false
-	tip.CFrame = CFrame.new(tipPos)
-	tip.Parent = character
+-- Left solar wing — swept slightly back
+local wingL = Instance.new("Part")
+wingL.Size = Vector3.new(5.5, 0.18, 2.4)
+wingL.Material = Enum.Material.Metal
+wingL.Color = MID_HULL
+attach(wingL, Vector3.new(-4.6, -0.1, 0.8))
 
-	local tipWeld = Instance.new("WeldConstraint")
-	tipWeld.Part0 = rootPart
-	tipWeld.Part1 = tip
-	tipWeld.Parent = rootPart
+-- Right solar wing
+local wingR = Instance.new("Part")
+wingR.Size = Vector3.new(5.5, 0.18, 2.4)
+wingR.Material = Enum.Material.Metal
+wingR.Color = MID_HULL
+attach(wingR, Vector3.new(4.6, -0.1, 0.8))
 
-	local tipLight = Instance.new("PointLight")
-	tipLight.Brightness = 0.8
-	tipLight.Range = 8
-	tipLight.Color = Color3.fromRGB(0, 200, 255)
-	tipLight.Parent = tip
+-- Wing accent stripe left
+local accentL = Instance.new("Part")
+accentL.Size = Vector3.new(5.5, 0.18, 0.3)
+accentL.Material = Enum.Material.Neon
+accentL.Color = NEON_BLUE
+attach(accentL, Vector3.new(-4.6, -0.1, -0.2))
+
+-- Wing accent stripe right
+local accentR = Instance.new("Part")
+accentR.Size = Vector3.new(5.5, 0.18, 0.3)
+accentR.Material = Enum.Material.Neon
+accentR.Color = NEON_BLUE
+attach(accentR, Vector3.new(4.6, -0.1, -0.2))
+
+-- Scanner dome at nose
+local scanner = Instance.new("Part")
+scanner.Shape = Enum.PartType.Ball
+scanner.Size = Vector3.new(1.1, 1.1, 1.1)
+scanner.Material = Enum.Material.Neon
+scanner.Color = NEON_BLUE
+attach(scanner, Vector3.new(0, 0.3, -3.9))
+
+local scanLight = Instance.new("PointLight")
+scanLight.Brightness = 1.5
+scanLight.Range = 18
+scanLight.Color = NEON_BLUE
+scanLight.Parent = scanner
+
+-- Engine nozzle at rear
+local engine = Instance.new("Part")
+engine.Shape = Enum.PartType.Ball
+engine.Size = Vector3.new(1.2, 1.2, 1.2)
+engine.Material = Enum.Material.Neon
+engine.Color = NEON_BLUE
+attach(engine, Vector3.new(0, 0, 3.7))
+
+local engineLight = Instance.new("PointLight")
+engineLight.Brightness = 4
+engineLight.Range = 28
+engineLight.Color = NEON_BLUE
+engineLight.Parent = engine
+
+-- Two small secondary engine pods flanking rear
+for _, side in ipairs({-1, 1}) do
+	local pod = Instance.new("Part")
+	pod.Shape = Enum.PartType.Ball
+	pod.Size = Vector3.new(0.7, 0.7, 0.7)
+	pod.Material = Enum.Material.Neon
+	pod.Color = NEON_BLUE
+	attach(pod, Vector3.new(side * 1.4, -0.1, 3.4))
 end
 
 -- Physics movers
@@ -101,8 +131,8 @@ bodyVelocity.Parent = rootPart
 
 local bodyGyro = Instance.new("BodyGyro")
 bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-bodyGyro.D = 100
-bodyGyro.P = 1000
+bodyGyro.D = 120
+bodyGyro.P = 1200
 bodyGyro.CFrame = rootPart.CFrame
 bodyGyro.Parent = rootPart
 
@@ -112,7 +142,7 @@ local VERTICAL_SPEED = 50
 RunService.Heartbeat:Connect(function()
 	local camCF = camera.CFrame
 	local forward = Vector3.new(camCF.LookVector.X, 0, camCF.LookVector.Z).Unit
-	local right = Vector3.new(camCF.RightVector.X, 0, camCF.RightVector.Z).Unit
+	local right   = Vector3.new(camCF.RightVector.X, 0, camCF.RightVector.Z).Unit
 
 	local moveDir = Vector3.zero
 	if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir += forward end
@@ -121,7 +151,7 @@ RunService.Heartbeat:Connect(function()
 	if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir -= right end
 
 	local vertical = 0
-	if UserInputService:IsKeyDown(Enum.KeyCode.Space) then vertical = 1 end
+	if UserInputService:IsKeyDown(Enum.KeyCode.Space)     then vertical =  1 end
 	if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then vertical = -1 end
 
 	local velocity = Vector3.zero

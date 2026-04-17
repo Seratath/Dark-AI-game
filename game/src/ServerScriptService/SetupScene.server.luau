@@ -12,8 +12,13 @@ Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 3)
 Lighting.Brightness = 0
 Lighting.GlobalShadows = false
 
--- Starfield sky
-Instance.new("Sky").Parent = Lighting
+-- Remove all atmospheric haze so the background is black space
+local atmosphere = Instance.new("Atmosphere")
+atmosphere.Density = 0
+atmosphere.Offset = 0
+atmosphere.Haze = 0
+atmosphere.Glare = 0
+atmosphere.Parent = Lighting
 
 -- Bloom — makes neon parts glow
 local bloom = Instance.new("BloomEffect")
