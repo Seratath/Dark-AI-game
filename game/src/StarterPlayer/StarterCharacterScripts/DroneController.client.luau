@@ -1,4 +1,4 @@
--- Replaces the default character with a flying probe scout ship.
+-- Von Neumann probe — elongated teardrop hull with swept wings and engine exhaust.
 -- Controls: WASD = horizontal, Space = up, LeftShift = down, mouse = look.
 
 local Players = game:GetService("Players")
@@ -11,10 +11,8 @@ local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 local camera = workspace.CurrentCamera
 
--- Kill default movement
 humanoid.PlatformStand = true
 
--- Hide all default character parts; rootPart becomes the invisible physics anchor
 for _, desc in ipairs(character:GetDescendants()) do
 	if desc:IsA("BasePart") then
 		desc.Transparency = 1
@@ -24,106 +22,90 @@ for _, desc in ipairs(character:GetDescendants()) do
 	end
 end
 
--- Wait for character physics to settle before building the ship
 task.wait()
 
--- Helper: create a part welded to rootPart at a local offset
-local function attach(part, localPos, localCFrame)
-	part.CanCollide = false
-	part.Anchored = false
-	part.CFrame = rootPart.CFrame * (localCFrame or CFrame.new(localPos))
-	part.Parent = character
+-- Helpers
+local function part(size, color, material)
+	local p = Instance.new("Part")
+	p.Size = size
+	p.Color = color
+	p.Material = material or Enum.Material.Metal
+	p.CanCollide = false
+	p.Anchored = false
+	return p
+end
+
+local function ball(diameter, color, material)
+	local p = part(Vector3.new(diameter, diameter, diameter), color, material)
+	p.Shape = Enum.PartType.Ball
+	return p
+end
+
+local function attach(p, localOffset)
+	p.CFrame = rootPart.CFrame * CFrame.new(localOffset)
+	p.Parent = character
 	local w = Instance.new("WeldConstraint")
 	w.Part0 = rootPart
-	w.Part1 = part
+	w.Part1 = p
 	w.Parent = rootPart
 end
 
-local DARK_HULL  = Color3.fromRGB(30,  38,  52)
-local MID_HULL   = Color3.fromRGB(45,  55,  72)
-local NEON_BLUE  = Color3.fromRGB(0,  200, 255)
+local DARK  = Color3.fromRGB(28,  36,  50)
+local MID   = Color3.fromRGB(48,  58,  76)
+local LIGHT = Color3.fromRGB(72,  85, 108)
+local NEON  = Color3.fromRGB(0,  200, 255)
 
--- Main hull — elongated body, nose faces -Z (forward)
-local hull = Instance.new("Part")
-hull.Size = Vector3.new(2.8, 1, 7)
-hull.Material = Enum.Material.Metal
-hull.Color = DARK_HULL
-attach(hull, Vector3.new(0, 0, 0))
+-- ── Hull sections stacked nose(-Z) to engine(+Z) ──────────────────────────
 
--- Raised cockpit ridge along the top front half
-local cockpit = Instance.new("Part")
-cockpit.Size = Vector3.new(1.6, 0.6, 3.5)
-cockpit.Material = Enum.Material.SmoothPlastic
-cockpit.Color = MID_HULL
-attach(cockpit, Vector3.new(0, 0.7, -1.2))
+-- Nose tip
+local noseTip = ball(0.8, NEON, Enum.Material.Neon)
+attach(noseTip, Vector3.new(0, 0, -13))
 
--- Left solar wing — swept slightly back
-local wingL = Instance.new("Part")
-wingL.Size = Vector3.new(5.5, 0.18, 2.4)
-wingL.Material = Enum.Material.Metal
-wingL.Color = MID_HULL
-attach(wingL, Vector3.new(-4.6, -0.1, 0.8))
+-- Forward taper
+local fwd1 = part(Vector3.new(1.2, 1,   4), DARK)  ; attach(fwd1,  Vector3.new(0,  0, -11))
+local fwd2 = part(Vector3.new(2,   1.4, 4), MID)   ; attach(fwd2,  Vector3.new(0,  0, -7.5))
+local fwd3 = part(Vector3.new(3,   1.8, 4), MID)   ; attach(fwd3,  Vector3.new(0,  0, -4))
 
--- Right solar wing
-local wingR = Instance.new("Part")
-wingR.Size = Vector3.new(5.5, 0.18, 2.4)
-wingR.Material = Enum.Material.Metal
-wingR.Color = MID_HULL
-attach(wingR, Vector3.new(4.6, -0.1, 0.8))
+-- Mid hull (widest)
+local mid  = part(Vector3.new(4,   2.4, 6), DARK)  ; attach(mid,   Vector3.new(0,  0,  0))
 
--- Wing accent stripe left
-local accentL = Instance.new("Part")
-accentL.Size = Vector3.new(5.5, 0.18, 0.3)
-accentL.Material = Enum.Material.Neon
-accentL.Color = NEON_BLUE
-attach(accentL, Vector3.new(-4.6, -0.1, -0.2))
+-- Rear taper
+local rr1  = part(Vector3.new(3.5, 2.2, 4), MID)  ; attach(rr1,   Vector3.new(0,  0,  4.5))
+local rr2  = part(Vector3.new(2.5, 1.6, 4), DARK)  ; attach(rr2,   Vector3.new(0,  0,  8))
+local rr3  = part(Vector3.new(1.5, 1,   3), MID)   ; attach(rr3,   Vector3.new(0,  0, 10.5))
 
--- Wing accent stripe right
-local accentR = Instance.new("Part")
-accentR.Size = Vector3.new(5.5, 0.18, 0.3)
-accentR.Material = Enum.Material.Neon
-accentR.Color = NEON_BLUE
-attach(accentR, Vector3.new(4.6, -0.1, -0.2))
+-- Spine ridge along top
+local spine = part(Vector3.new(0.6, 0.5, 24), LIGHT) ; attach(spine, Vector3.new(0, 1.4,  -1))
 
--- Scanner dome at nose
-local scanner = Instance.new("Part")
-scanner.Shape = Enum.PartType.Ball
-scanner.Size = Vector3.new(1.1, 1.1, 1.1)
-scanner.Material = Enum.Material.Neon
-scanner.Color = NEON_BLUE
-attach(scanner, Vector3.new(0, 0.3, -3.9))
+-- ── Swept wings at mid section ────────────────────────────────────────────
+-- Angled back: wider at rear than front to give swept look
+for _, s in ipairs({-1, 1}) do
+	local wing = part(Vector3.new(9, 0.22, 4), MID)
+	attach(wing, Vector3.new(s * 6.5, -0.5, 1.5))
 
-local scanLight = Instance.new("PointLight")
-scanLight.Brightness = 1.5
-scanLight.Range = 18
-scanLight.Color = NEON_BLUE
-scanLight.Parent = scanner
+	-- Thin neon edge stripe along leading edge
+	local stripe = part(Vector3.new(9, 0.22, 0.25), NEON, Enum.Material.Neon)
+	attach(stripe, Vector3.new(s * 6.5, -0.5, -0.65))
 
--- Engine nozzle at rear
-local engine = Instance.new("Part")
-engine.Shape = Enum.PartType.Ball
-engine.Size = Vector3.new(1.2, 1.2, 1.2)
-engine.Material = Enum.Material.Neon
-engine.Color = NEON_BLUE
-attach(engine, Vector3.new(0, 0, 3.7))
-
-local engineLight = Instance.new("PointLight")
-engineLight.Brightness = 4
-engineLight.Range = 28
-engineLight.Color = NEON_BLUE
-engineLight.Parent = engine
-
--- Two small secondary engine pods flanking rear
-for _, side in ipairs({-1, 1}) do
-	local pod = Instance.new("Part")
-	pod.Shape = Enum.PartType.Ball
-	pod.Size = Vector3.new(0.7, 0.7, 0.7)
-	pod.Material = Enum.Material.Neon
-	pod.Color = NEON_BLUE
-	attach(pod, Vector3.new(side * 1.4, -0.1, 3.4))
+	-- Wingtip node
+	local tip = ball(0.7, NEON, Enum.Material.Neon)
+	attach(tip, Vector3.new(s * 11.2, -0.5, 1))
+	local tl = Instance.new("PointLight")
+	tl.Brightness = 0.8 ; tl.Range = 10 ; tl.Color = NEON ; tl.Parent = tip
 end
 
--- Physics movers
+-- ── Engine exhaust (rear) ──────────────────────────────────────────────────
+local engineCore = ball(1.8, NEON, Enum.Material.Neon)
+attach(engineCore, Vector3.new(0, 0, 12.5))
+local el = Instance.new("PointLight")
+el.Brightness = 6 ; el.Range = 40 ; el.Color = NEON ; el.Parent = engineCore
+
+-- Outer exhaust bloom (larger, slightly transparent)
+local bloom = ball(3.2, Color3.fromRGB(120, 220, 255), Enum.Material.Neon)
+bloom.Transparency = 0.55
+attach(bloom, Vector3.new(0, 0, 13.8))
+
+-- ── Physics movers ────────────────────────────────────────────────────────
 local bodyVelocity = Instance.new("BodyVelocity")
 bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
 bodyVelocity.Velocity = Vector3.zero
@@ -131,8 +113,8 @@ bodyVelocity.Parent = rootPart
 
 local bodyGyro = Instance.new("BodyGyro")
 bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
-bodyGyro.D = 120
-bodyGyro.P = 1200
+bodyGyro.D = 140
+bodyGyro.P = 1400
 bodyGyro.CFrame = rootPart.CFrame
 bodyGyro.Parent = rootPart
 
