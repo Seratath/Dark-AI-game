@@ -10,11 +10,11 @@ if baseplate then baseplate:Destroy() end
 -- Roblox PointLight range caps at 60 studs, so the central star can't actually
 -- light planets that are hundreds of studs away. Bumping ambient gives uniform
 -- visibility instead, sacrificing realistic shadowing for readable distance.
-Lighting.Ambient = Color3.fromRGB(70, 75, 95)
-Lighting.OutdoorAmbient = Color3.fromRGB(35, 40, 55)
+Lighting.Ambient = Color3.fromRGB(140, 145, 165)
+Lighting.OutdoorAmbient = Color3.fromRGB(90, 95, 115)
 Lighting.Brightness = 0
 Lighting.ClockTime = 0                      -- night, kills the sun
-Lighting.ExposureCompensation = -0.1
+Lighting.ExposureCompensation = 0
 Lighting.EnvironmentDiffuseScale = 0        -- no skybox-based diffuse light
 Lighting.EnvironmentSpecularScale = 0       -- no skybox-based reflections
 Lighting.GlobalShadows = false
