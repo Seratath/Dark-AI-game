@@ -15,6 +15,12 @@
         "DroneController": {
           "$path": "src/StarterPlayer/StarterCharacterScripts/DroneController.client.luau"
         }
+      },
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "PlanetInteraction": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/PlanetInteraction.client.luau"
+        }
       }
     }
   }

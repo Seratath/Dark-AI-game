@@ -1,4 +1,4 @@
--- Hides the default character and turns HumanoidRootPart into a glowing drone probe.
+-- Replaces the default character with a flying probe drone.
 -- Controls: WASD = horizontal, Space = up, LeftShift = down, mouse = look.
 
 local Players = game:GetService("Players")
@@ -11,10 +11,10 @@ local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 local camera = workspace.CurrentCamera
 
--- Disable the default Roblox movement controller
+-- Kill default movement and animations
 humanoid.PlatformStand = true
 
--- Hide all character parts except the root
+-- Hide all default character parts
 for _, desc in ipairs(character:GetDescendants()) do
 	if desc:IsA("BasePart") and desc ~= rootPart then
 		desc.Transparency = 1
@@ -24,17 +24,74 @@ for _, desc in ipairs(character:GetDescendants()) do
 	end
 end
 
--- Style the root as the drone probe
+-- Drone core — sphere
 rootPart.Transparency = 0
 rootPart.Material = Enum.Material.Neon
 rootPart.Color = Color3.fromRGB(0, 200, 255)
 rootPart.CanCollide = false
 
-local glow = Instance.new("PointLight")
-glow.Brightness = 2
-glow.Range = 20
-glow.Color = Color3.fromRGB(0, 200, 255)
-glow.Parent = rootPart
+local mesh = Instance.new("SpecialMesh")
+mesh.MeshType = Enum.MeshType.Sphere
+mesh.Scale = Vector3.new(1.2, 1.2, 1.2)
+mesh.Parent = rootPart
+
+local coreGlow = Instance.new("PointLight")
+coreGlow.Brightness = 2
+coreGlow.Range = 25
+coreGlow.Color = Color3.fromRGB(0, 200, 255)
+coreGlow.Parent = rootPart
+
+-- Build 4 thruster arms after physics settles
+task.wait()
+
+local thrusterOffsets = {
+	Vector3.new( 2.5, 0,  2.5),
+	Vector3.new(-2.5, 0,  2.5),
+	Vector3.new( 2.5, 0, -2.5),
+	Vector3.new(-2.5, 0, -2.5),
+}
+
+for _, offset in ipairs(thrusterOffsets) do
+	local tipPos = rootPart.Position + offset
+	local armCenter = rootPart.Position + offset * 0.5
+
+	-- Strut arm
+	local arm = Instance.new("Part")
+	arm.Size = Vector3.new(0.22, 0.22, offset.Magnitude * 0.82)
+	arm.Material = Enum.Material.Metal
+	arm.Color = Color3.fromRGB(35, 45, 60)
+	arm.CanCollide = false
+	arm.Anchored = false
+	arm.CFrame = CFrame.lookAt(armCenter, tipPos)
+	arm.Parent = character
+
+	local armWeld = Instance.new("WeldConstraint")
+	armWeld.Part0 = rootPart
+	armWeld.Part1 = arm
+	armWeld.Parent = rootPart
+
+	-- Thruster node
+	local tip = Instance.new("Part")
+	tip.Shape = Enum.PartType.Ball
+	tip.Size = Vector3.new(0.65, 0.65, 0.65)
+	tip.Material = Enum.Material.Neon
+	tip.Color = Color3.fromRGB(0, 200, 255)
+	tip.CanCollide = false
+	tip.Anchored = false
+	tip.CFrame = CFrame.new(tipPos)
+	tip.Parent = character
+
+	local tipWeld = Instance.new("WeldConstraint")
+	tipWeld.Part0 = rootPart
+	tipWeld.Part1 = tip
+	tipWeld.Parent = rootPart
+
+	local tipLight = Instance.new("PointLight")
+	tipLight.Brightness = 0.8
+	tipLight.Range = 8
+	tipLight.Color = Color3.fromRGB(0, 200, 255)
+	tipLight.Parent = tip
+end
 
 -- Physics movers
 local bodyVelocity = Instance.new("BodyVelocity")
