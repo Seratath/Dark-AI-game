@@ -107,12 +107,12 @@ attach(bloom, Vector3.new(0, 0, 13.8))
 
 -- ── Physics movers ────────────────────────────────────────────────────────
 local bodyVelocity = Instance.new("BodyVelocity")
-bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 bodyVelocity.Velocity = Vector3.zero
 bodyVelocity.Parent = rootPart
 
 local bodyGyro = Instance.new("BodyGyro")
-bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
 bodyGyro.D = 140
 bodyGyro.P = 1400
 bodyGyro.CFrame = rootPart.CFrame
