@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
-local RANGE = 130
+local RANGE = 600
 
 local planetInfo = {
 	Planet_Homeworld = "Homeworld  |  Habitable",

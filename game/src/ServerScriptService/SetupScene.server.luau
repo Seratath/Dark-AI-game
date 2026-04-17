@@ -7,25 +7,22 @@ local baseplate = Workspace:FindFirstChild("Baseplate")
 if baseplate then baseplate:Destroy() end
 
 -- Deep space lighting
-Lighting.Ambient = Color3.fromRGB(2, 2, 8)
-Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 3)
+-- Roblox PointLight range caps at 60 studs, so the central star can't actually
+-- light planets that are hundreds of studs away. Bumping ambient gives uniform
+-- visibility instead, sacrificing realistic shadowing for readable distance.
+Lighting.Ambient = Color3.fromRGB(70, 75, 95)
+Lighting.OutdoorAmbient = Color3.fromRGB(35, 40, 55)
 Lighting.Brightness = 0
 Lighting.ClockTime = 0                      -- night, kills the sun
-Lighting.ExposureCompensation = -0.8        -- darken overall exposure
+Lighting.ExposureCompensation = -0.1
 Lighting.EnvironmentDiffuseScale = 0        -- no skybox-based diffuse light
 Lighting.EnvironmentSpecularScale = 0       -- no skybox-based reflections
 Lighting.GlobalShadows = false
 
--- Black starfield sky, hide sun and moon
+-- Default Sky with no sun/moon and many stars
 local sky = Instance.new("Sky")
 sky.CelestialBodiesShown = false
-sky.StarCount = 4000
-sky.SkyboxBk = ""
-sky.SkyboxDn = ""
-sky.SkyboxFt = ""
-sky.SkyboxLf = ""
-sky.SkyboxRt = ""
-sky.SkyboxUp = ""
+sky.StarCount = 6000
 sky.Parent = Lighting
 
 -- Remove all atmospheric haze so the background is black space
@@ -86,26 +83,41 @@ local function makePlanet(name, size, position, color, material)
 	p.CastShadow = false
 	p.Parent = Workspace
 
-	-- Atmosphere halo
-	local atmo = Instance.new("Part")
-	atmo.Name = name .. "_Atmo"
-	atmo.Shape = Enum.PartType.Ball
-	atmo.Size = Vector3.new(size * 1.18, size * 1.18, size * 1.18)
-	atmo.Position = position
-	atmo.Anchored = true
-	atmo.CanCollide = false
-	atmo.Material = Enum.Material.ForceField
-	atmo.Color = color
-	atmo.Transparency = 0.82
-	atmo.CastShadow = false
-	atmo.Parent = Workspace
+	-- Inner atmosphere — close to surface, more visible
+	local innerAtmo = Instance.new("Part")
+	innerAtmo.Name = name .. "_AtmoInner"
+	innerAtmo.Shape = Enum.PartType.Ball
+	innerAtmo.Size = Vector3.new(size * 1.08, size * 1.08, size * 1.08)
+	innerAtmo.Position = position
+	innerAtmo.Anchored = true
+	innerAtmo.CanCollide = false
+	innerAtmo.Material = Enum.Material.ForceField
+	innerAtmo.Color = color
+	innerAtmo.Transparency = 0.6
+	innerAtmo.CastShadow = false
+	innerAtmo.Parent = Workspace
+
+	-- Outer atmosphere — wider, softer
+	local outerAtmo = Instance.new("Part")
+	outerAtmo.Name = name .. "_AtmoOuter"
+	outerAtmo.Shape = Enum.PartType.Ball
+	outerAtmo.Size = Vector3.new(size * 1.35, size * 1.35, size * 1.35)
+	outerAtmo.Position = position
+	outerAtmo.Anchored = true
+	outerAtmo.CanCollide = false
+	outerAtmo.Material = Enum.Material.ForceField
+	outerAtmo.Color = color
+	outerAtmo.Transparency = 0.85
+	outerAtmo.CastShadow = false
+	outerAtmo.Parent = Workspace
 
 	return p
 end
 
-makePlanet("Planet_Homeworld", 30, Vector3.new( 300,   0,    0), Color3.fromRGB( 55, 120, 200))
-makePlanet("Planet_Barren",    18, Vector3.new(-400,  50,  200), Color3.fromRGB(130,  90,  60), Enum.Material.Slate)
-makePlanet("Planet_Resource",  22, Vector3.new( 100, -80, -500), Color3.fromRGB(175, 135,  50), Enum.Material.Granite)
+-- Bigger planets so they read at distance
+makePlanet("Planet_Homeworld", 90, Vector3.new( 500,   0,    0), Color3.fromRGB( 80, 160, 230))
+makePlanet("Planet_Barren",    55, Vector3.new(-600,  80,  300), Color3.fromRGB(170, 130,  90), Enum.Material.Slate)
+makePlanet("Planet_Resource",  70, Vector3.new( 200,-120, -700), Color3.fromRGB(220, 175,  80), Enum.Material.Granite)
 
 -- Asteroid field
 local rng = Random.new(42)
@@ -138,7 +150,7 @@ end
 local spawn = Instance.new("SpawnLocation")
 spawn.Name = "ProbeSpawn"
 spawn.Size = Vector3.new(4, 1, 4)
-spawn.Position = Vector3.new(330, 20, 0)
+spawn.Position = Vector3.new(380, 30, 80)
 spawn.Anchored = true
 spawn.Material = Enum.Material.Neon
 spawn.Color = Color3.fromRGB(0, 200, 255)
