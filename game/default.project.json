@@ -7,6 +7,15 @@
       "SetupScene": {
         "$path": "src/ServerScriptService/SetupScene.server.luau"
       }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterCharacterScripts": {
+        "$className": "StarterCharacterScripts",
+        "DroneController": {
+          "$path": "src/StarterPlayer/StarterCharacterScripts/DroneController.client.luau"
+        }
+      }
     }
   }
 }
