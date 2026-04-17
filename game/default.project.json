@@ -1,0 +1,12 @@
+{
+  "name": "dark-ai-game",
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "SetupScene": {
+        "$path": "src/ServerScriptService/SetupScene.server.luau"
+      }
+    }
+  }
+}
