@@ -10,14 +10,32 @@ if baseplate then baseplate:Destroy() end
 Lighting.Ambient = Color3.fromRGB(2, 2, 8)
 Lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 3)
 Lighting.Brightness = 0
+Lighting.ClockTime = 0                      -- night, kills the sun
+Lighting.ExposureCompensation = -0.8        -- darken overall exposure
+Lighting.EnvironmentDiffuseScale = 0        -- no skybox-based diffuse light
+Lighting.EnvironmentSpecularScale = 0       -- no skybox-based reflections
 Lighting.GlobalShadows = false
+
+-- Black starfield sky, hide sun and moon
+local sky = Instance.new("Sky")
+sky.CelestialBodiesShown = false
+sky.StarCount = 4000
+sky.SkyboxBk = ""
+sky.SkyboxDn = ""
+sky.SkyboxFt = ""
+sky.SkyboxLf = ""
+sky.SkyboxRt = ""
+sky.SkyboxUp = ""
+sky.Parent = Lighting
 
 -- Remove all atmospheric haze so the background is black space
 local atmosphere = Instance.new("Atmosphere")
 atmosphere.Density = 0
 atmosphere.Offset = 0
-atmosphere.Haze = 0
+atmosphere.Color = Color3.fromRGB(0, 0, 0)
+atmosphere.Decay = Color3.fromRGB(0, 0, 0)
 atmosphere.Glare = 0
+atmosphere.Haze = 0
 atmosphere.Parent = Lighting
 
 -- Bloom — makes neon parts glow
