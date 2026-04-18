@@ -18,6 +18,9 @@
       },
       "MiningOps": {
         "$path": "src/ServerScriptService/MiningOps.server.luau"
+      },
+      "BackgroundTraffic": {
+        "$path": "src/ServerScriptService/BackgroundTraffic.server.luau"
       }
     },
     "StarterPlayer": {
@@ -50,6 +53,9 @@
         },
         "CommsIntro": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/CommsIntro.client.luau"
+        },
+        "SpeedReadout": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/SpeedReadout.client.luau"
         }
       }
     }

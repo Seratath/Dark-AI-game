@@ -89,12 +89,12 @@ end
 -- Bottom-right hint panel: controls
 local hint = Instance.new("TextLabel")
 hint.Name = "ControlsHint"
-hint.Size = UDim2.new(0, 260, 0, 22)
+hint.Size = UDim2.new(0, 340, 0, 22)
 hint.Position = UDim2.new(0, 16, 1, -34)
 hint.BackgroundColor3 = Color3.fromRGB(10, 16, 28)
 hint.BackgroundTransparency = 0.35
 hint.BorderSizePixel = 0
-hint.Text = "  WASD  move    SPACE up    SHIFT down  "
+hint.Text = "  WASD  move    SPACE up    SHIFT down    Q  boost  "
 hint.TextColor3 = Color3.fromRGB(170, 200, 230)
 hint.Font = Enum.Font.Gotham
 hint.TextSize = 12

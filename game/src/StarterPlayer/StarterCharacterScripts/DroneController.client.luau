@@ -150,6 +150,16 @@ bodyGyro.Parent = rootPart
 
 local SPEED = 80
 local VERTICAL_SPEED = 50
+local BOOST_MULT = 3.2
+
+-- Publish current velocity for other UI scripts (SpeedReadout) to read.
+local velocityValue = Instance.new("Vector3Value")
+velocityValue.Name = "ProbeVelocity"
+velocityValue.Parent = player
+
+local boostValue = Instance.new("BoolValue")
+boostValue.Name = "ProbeBoost"
+boostValue.Parent = player
 
 RunService.Heartbeat:Connect(function()
 	local camCF = camera.CFrame
@@ -166,11 +176,21 @@ RunService.Heartbeat:Connect(function()
 	if UserInputService:IsKeyDown(Enum.KeyCode.Space)     then vertical =  1 end
 	if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then vertical = -1 end
 
+	local boosting = UserInputService:IsKeyDown(Enum.KeyCode.Q)
+	local mult = boosting and BOOST_MULT or 1
+
 	local velocity = Vector3.zero
 	if moveDir.Magnitude > 0 then
-		velocity = moveDir.Unit * SPEED
+		velocity = moveDir.Unit * SPEED * mult
 	end
-	bodyVelocity.Velocity = velocity + Vector3.new(0, vertical * VERTICAL_SPEED, 0)
+	local finalVel = velocity + Vector3.new(0, vertical * VERTICAL_SPEED * mult, 0)
+	bodyVelocity.Velocity = finalVel
+	velocityValue.Value = finalVel
+	boostValue.Value = boosting
+
+	-- Stretch the engine glow when boosting for visible feel
+	engineCore.Size = boosting and Vector3.new(2.2, 2.2, 2.2) or Vector3.new(1.8, 1.8, 1.8)
+	bloom.Size      = boosting and Vector3.new(4.2, 4.2, 4.2) or Vector3.new(3.2, 3.2, 3.2)
 
 	if moveDir.Magnitude > 0 then
 		bodyGyro.CFrame = CFrame.lookAt(rootPart.Position, rootPart.Position + forward)
