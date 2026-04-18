@@ -17,15 +17,21 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local scanRemote, claimRemote, claimResult, claimedFolder
+local upgradeScannerRemote, upgradeResultRemote, scannerTierVal
 task.spawn(function()
 	local remotes = ReplicatedStorage:WaitForChild("EmpireRemotes", 10)
 	if remotes then
 		scanRemote   = remotes:WaitForChild("ScanCompleted", 5)
 		claimRemote  = remotes:WaitForChild("ClaimWorld", 5)
 		claimResult  = remotes:WaitForChild("ClaimResult", 5)
+		upgradeScannerRemote = remotes:WaitForChild("UpgradeScanner", 5)
+		upgradeResultRemote  = remotes:WaitForChild("UpgradeResult", 5)
 	end
 	local es = ReplicatedStorage:WaitForChild("EmpireState", 10)
-	if es then claimedFolder = es:WaitForChild("Claimed", 5) end
+	if es then
+		claimedFolder = es:WaitForChild("Claimed", 5)
+		scannerTierVal = es:WaitForChild("ScannerTier", 5)
+	end
 end)
 
 local CLAIMABLE_SET = {
@@ -402,12 +408,23 @@ local function detectNew(root)
 	end
 end
 
+local function currentTier()
+	return scannerTierVal and scannerTierVal.Value or 2
+end
+
+local function promoteDetail(contact)
+	if contact.stage < 3 then contact.stage = 3 end
+	contact.detailLbl.Text = contact.catalog.detail or ""
+	contact.detailLbl.TextColor3 = Color3.fromRGB(150, 200, 230)
+end
+
 local function promote(contact)
 	contact.stage = 2
 	contact.dot.Text = "✓"
 	contact.dot.TextColor3 = GREEN
 	contact.labelLbl.Text = contact.catalog.label
 	contact.labelLbl.TextColor3 = contact.catalog.color
+	if currentTier() >= 3 then promoteDetail(contact) end
 	-- Brief row flash
 	local orig = contact.row.BackgroundColor3
 	contact.row.BackgroundColor3 = Color3.fromRGB(30, 60, 50)
@@ -482,6 +499,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end
 	if input.KeyCode == Enum.KeyCode.F then fHeld = true end
 	if input.KeyCode == Enum.KeyCode.C then cPressed = true end
+	if input.KeyCode == Enum.KeyCode.U and upgradeScannerRemote then
+		upgradeScannerRemote:FireServer()
+	end
 end)
 UserInputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.F then
@@ -512,6 +532,24 @@ if claimResult then
 		end)
 	end)
 end
+
+task.spawn(function()
+	while not upgradeResultRemote or not scannerTierVal do task.wait(0.2) end
+	upgradeResultRemote.OnClientEvent:Connect(function(ok, msg)
+		flashText.TextColor3 = ok and GREEN or Color3.fromRGB(255, 120, 120)
+		flashText.Text = msg
+		task.delay(2.2, function()
+			if flashText.Text == msg then flashText.Text = "" end
+		end)
+	end)
+	scannerTierVal.Changed:Connect(function(tier)
+		if tier >= 3 then
+			for _, c in pairs(contacts) do
+				if c.stage >= 2 then promoteDetail(c) end
+			end
+		end
+	end)
+end)
 
 -- Refresh list rows when claims change
 if claimedFolder then

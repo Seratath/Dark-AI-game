@@ -35,6 +35,7 @@ local energy     = num("Energy",     0)
 local energyMax  = num("EnergyMax",  0)
 local population = num("Population", 0)
 local fleet      = num("Fleet",      1)   -- the probe
+local scannerTier = num("ScannerTier", 2)   -- 2 = identified, 3 = detailed
 
 local claimed = Instance.new("Folder") ; claimed.Name = "Claimed"  ; claimed.Parent = state
 local deployed = Instance.new("Folder") ; deployed.Name = "Deployed" ; deployed.Parent = state
@@ -79,6 +80,23 @@ local deployMiner   = remote("DeployMiner")
 local deployScout   = remote("DeployScout")
 local deployRelay   = remote("DeployRelay")
 local deployResult  = remote("DeployResult")
+local upgradeScanner = remote("UpgradeScanner")
+local upgradeResult  = remote("UpgradeResult")
+
+local SCANNER_TIER3_COMPUTE = 0.5
+
+upgradeScanner.OnServerEvent:Connect(function(plr)
+	if scannerTier.Value >= 3 then
+		upgradeResult:FireClient(plr, false, "SCANNER ALREADY AT TIER 3") ; return
+	end
+	if compute.Value < SCANNER_TIER3_COMPUTE then
+		upgradeResult:FireClient(plr, false, string.format("INSUFFICIENT COMPUTE  —  need %.2f TF", SCANNER_TIER3_COMPUTE))
+		return
+	end
+	compute.Value = compute.Value - SCANNER_TIER3_COMPUTE
+	scannerTier.Value = 3
+	upgradeResult:FireClient(plr, true, "SCANNER UPGRADED  —  detailed readouts unlocked")
+end)
 
 scanCompleted.OnServerEvent:Connect(function() end)   -- no-op; scans give information, not economy
 

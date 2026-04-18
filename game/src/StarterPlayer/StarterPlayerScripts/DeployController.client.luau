@@ -81,7 +81,7 @@ task.spawn(function()
 	if not hudGui then return end
 	local hint = hudGui:FindFirstChild("ControlsHint")
 	if hint and hint:IsA("TextLabel") then
-		hint.Size = UDim2.new(0, 720, 0, 22)
-		hint.Text = "  WASD  SPACE/SHIFT  Q boost  LMB fire  F scan  C claim  B beacon  M miner  G scout  R relay  "
+		hint.Size = UDim2.new(0, 760, 0, 22)
+		hint.Text = "  WASD  SPACE/SHIFT  Q boost  LMB fire  F scan  C claim  U upgrade  B beacon  M miner  G scout  R relay  "
 	end
 end)
