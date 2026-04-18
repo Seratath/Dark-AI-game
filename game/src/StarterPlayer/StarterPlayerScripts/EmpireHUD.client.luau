@@ -3,9 +3,11 @@
 -- any real economy exists.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local state = ReplicatedStorage:WaitForChild("EmpireState", 10)
 
 local screen = Instance.new("ScreenGui")
 screen.Name = "EmpireHUD"
@@ -53,12 +55,30 @@ divider.BorderSizePixel = 0
 divider.Parent = panel
 
 local rows = {
-	{ label = "Compute",    value = "1.24 TF",  color = Color3.fromRGB(150, 220, 255) },
-	{ label = "Ore",        value = "0",         color = Color3.fromRGB(220, 180, 120) },
-	{ label = "Energy",     value = "12 / 50",   color = Color3.fromRGB(255, 220, 100) },
-	{ label = "Population", value = "0",         color = Color3.fromRGB(180, 255, 180) },
-	{ label = "Fleet",      value = "1 Probe",   color = Color3.fromRGB(180, 200, 255) },
+	{ label = "Compute",    key = "Compute",    color = Color3.fromRGB(150, 220, 255) },
+	{ label = "Ore",        key = "Ore",        color = Color3.fromRGB(220, 180, 120) },
+	{ label = "Energy",     key = "Energy",     color = Color3.fromRGB(255, 220, 100) },
+	{ label = "Population", key = "Population", color = Color3.fromRGB(180, 255, 180) },
+	{ label = "Fleet",      key = "Fleet",      color = Color3.fromRGB(180, 200, 255) },
 }
+
+local function formatValue(key)
+	if not state then return "—" end
+	if key == "Compute" then
+		return string.format("%.2f TF", state.Compute.Value)
+	elseif key == "Energy" then
+		return string.format("%d / %d", state.Energy.Value, state.EnergyMax.Value)
+	elseif key == "Population" then
+		local v = state.Population.Value
+		if v >= 1000 then return string.format("%.1fK", v / 1000) end
+		return tostring(v)
+	elseif key == "Fleet" then
+		local v = state.Fleet.Value
+		return v == 1 and "1 Probe" or (tostring(v) .. " ships")
+	else
+		return tostring(math.floor(state[key].Value))
+	end
+end
 
 for i, row in ipairs(rows) do
 	local y = 38 + (i - 1) * 24
@@ -78,12 +98,20 @@ for i, row in ipairs(rows) do
 	val.Size = UDim2.new(0.5, -12, 0, 20)
 	val.Position = UDim2.new(0.5, 0, 0, y)
 	val.BackgroundTransparency = 1
-	val.Text = row.value
+	val.Text = formatValue(row.key)
 	val.TextColor3 = row.color
 	val.TextXAlignment = Enum.TextXAlignment.Right
 	val.Font = Enum.Font.GothamMedium
 	val.TextSize = 13
 	val.Parent = panel
+
+	if state then
+		local function refresh() val.Text = formatValue(row.key) end
+		state[row.key]:GetPropertyChangedSignal("Value"):Connect(refresh)
+		if row.key == "Energy" then
+			state.EnergyMax:GetPropertyChangedSignal("Value"):Connect(refresh)
+		end
+	end
 end
 
 -- Bottom-right hint panel: controls

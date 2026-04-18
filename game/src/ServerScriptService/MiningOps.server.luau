@@ -4,6 +4,13 @@
 
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local oreValue
+task.spawn(function()
+	local state = ReplicatedStorage:WaitForChild("EmpireState", 5)
+	if state then oreValue = state:WaitForChild("Ore", 5) end
+end)
 
 local resource = Workspace:WaitForChild("Planet_Resource", 5)
 if not resource then return end
@@ -103,6 +110,8 @@ local drones = {
 	makeDrone("MiningDrone_B", 2.1),
 	makeDrone("MiningDrone_C", 4.2),
 }
+for _, d in ipairs(drones) do d.awarded = false end
+local ORE_PER_DELIVERY = 2
 
 ----------------------------------------------------------------------
 -- Animation: drones cycle resource-world → asteroid → resource-world.
@@ -155,5 +164,13 @@ RunService.Heartbeat:Connect(function(dt)
 		d.engine.CFrame = cf * CFrame.new(0, 0, 1.7)
 		d.cargo.CFrame  = cf * CFrame.new(0, -0.7, 0)
 		d.cargo.Transparency = carrying and 0 or 1
+
+		-- Award one ore delivery per cycle when drone hits the unload phase.
+		if t >= 0.9 and not d.awarded then
+			d.awarded = true
+			if oreValue then oreValue.Value = oreValue.Value + ORE_PER_DELIVERY end
+		elseif t < 0.5 then
+			d.awarded = false
+		end
 	end
 end)

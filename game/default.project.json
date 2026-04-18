@@ -7,6 +7,9 @@
       "SetupScene": {
         "$path": "src/ServerScriptService/SetupScene.server.luau"
       },
+      "EmpireState": {
+        "$path": "src/ServerScriptService/EmpireState.server.luau"
+      },
       "EmpireDressing": {
         "$path": "src/ServerScriptService/EmpireDressing.server.luau"
       },

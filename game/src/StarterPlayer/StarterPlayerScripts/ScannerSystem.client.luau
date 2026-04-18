@@ -14,6 +14,13 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local scanRemote
+task.spawn(function()
+	local remotes = ReplicatedStorage:WaitForChild("EmpireRemotes", 10)
+	if remotes then scanRemote = remotes:WaitForChild("ScanCompleted", 5) end
+end)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -363,6 +370,7 @@ local function completeScan(contact)
 	progressFill.Size = UDim2.new(0, 0, 1, -4)
 	promote(contact)
 	spawnPulse(contact.anchor.Position, contact.catalog.color)
+	if scanRemote then scanRemote:FireServer(contact.name) end
 	flashText.Text = "SCAN COMPLETE  —  " .. contact.catalog.label
 	flashText.TextColor3 = GREEN
 	task.delay(1.8, function()
