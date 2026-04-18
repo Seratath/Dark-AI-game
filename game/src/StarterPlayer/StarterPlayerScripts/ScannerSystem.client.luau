@@ -62,6 +62,7 @@ local DETECT_RANGE    = 600   -- added to list as unidentified
 local SCAN_RANGE      = 280   -- can be scanned
 local SCAN_TIME       = 3.5
 local INTERRUPT_SPEED = 6      -- studs/sec
+local SCOUT_RANGE     = 480   -- scouts contribute this radius to detection
 
 ----------------------------------------------------------------------
 -- Catalog: reveal text per known object
@@ -365,13 +366,25 @@ local function resolveAnchor(name)
 	return obj
 end
 
+local function scoutCovers(pos)
+	local folder = Workspace:FindFirstChild("PlayerScouts")
+	if not folder then return false end
+	for _, scout in ipairs(folder:GetChildren()) do
+		local core = scout.PrimaryPart or scout:FindFirstChildWhichIsA("BasePart")
+		if core and (core.Position - pos).Magnitude < SCOUT_RANGE then
+			return true
+		end
+	end
+	return false
+end
+
 local function detectNew(root)
 	for name, data in pairs(catalog) do
 		if not contacts[name] then
 			local anchor = resolveAnchor(name)
 			if anchor then
 				local d = (anchor.Position - root.Position).Magnitude
-				if d < DETECT_RANGE then
+				if d < DETECT_RANGE or scoutCovers(anchor.Position) then
 					contactOrder += 1
 					local contact = {
 						name = name,

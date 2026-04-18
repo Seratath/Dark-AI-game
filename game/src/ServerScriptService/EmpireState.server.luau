@@ -58,6 +58,8 @@ local function intCounter(name)
 end
 local beaconsCount = intCounter("Beacons")
 local minersCount  = intCounter("Miners")
+local scoutsCount  = intCounter("Scouts")
+local relaysCount  = intCounter("Relays")
 
 ----------------------------------------------------------------------
 -- Remotes
@@ -74,6 +76,8 @@ local claimWorld    = remote("ClaimWorld")
 local claimResult   = remote("ClaimResult")
 local deployBeacon  = remote("DeployBeacon")
 local deployMiner   = remote("DeployMiner")
+local deployScout   = remote("DeployScout")
+local deployRelay   = remote("DeployRelay")
 local deployResult  = remote("DeployResult")
 
 scanCompleted.OnServerEvent:Connect(function() end)   -- no-op; scans give information, not economy
@@ -139,6 +143,8 @@ local OREHUE = Color3.fromRGB(255, 220, 120)
 
 local BEACON_COST = 5
 local MINER_COST  = 10
+local SCOUT_COST  = 6
+local RELAY_COST  = 8
 
 local function plainPart(size, color, material)
 	local p = Instance.new("Part")
@@ -268,6 +274,91 @@ deployMiner.OnServerEvent:Connect(function(plr, position)
 end)
 
 ----------------------------------------------------------------------
+-- Scout drone — orbits its deploy point, extends scanner detection.
+-- Parented to a PlayerScouts folder so ScannerSystem can enumerate.
+----------------------------------------------------------------------
+
+local scoutsFolder = Workspace:FindFirstChild("PlayerScouts")
+if not scoutsFolder then
+	scoutsFolder = Instance.new("Folder") ; scoutsFolder.Name = "PlayerScouts" ; scoutsFolder.Parent = Workspace
+end
+
+local function spawnScout(position)
+	deployCounter += 1
+	local model = Instance.new("Model") ; model.Name = "PlayerScout_" .. deployCounter
+
+	local core = plainPart(Vector3.new(1, 1, 1), NEON, Enum.Material.Neon)
+	core.Shape = Enum.PartType.Ball ; core.Position = position ; core.Parent = model
+	model.PrimaryPart = core
+	local halo = plainPart(Vector3.new(2.2, 2.2, 2.2), NEON, Enum.Material.ForceField)
+	halo.Shape = Enum.PartType.Ball ; halo.Position = position ; halo.Transparency = 0.6 ; halo.Parent = model
+	local light = Instance.new("PointLight") ; light.Brightness = 2 ; light.Range = 24 ; light.Color = NEON
+	light.Parent = core
+
+	model.Parent = scoutsFolder
+
+	local phase = math.random() * math.pi * 2
+	local conn
+	conn = RunService.Heartbeat:Connect(function(dt)
+		if not core.Parent then conn:Disconnect() return end
+		phase += dt * 0.4
+		local offset = Vector3.new(math.cos(phase) * 14, math.sin(phase * 1.3) * 4, math.sin(phase) * 14)
+		core.Position = position + offset
+		halo.Position = core.Position
+	end)
+end
+
+deployScout.OnServerEvent:Connect(function(plr, position)
+	if typeof(position) ~= "Vector3" then return end
+	if ore.Value < SCOUT_COST then
+		deployResult:FireClient(plr, false, "INSUFFICIENT ORE  —  need " .. SCOUT_COST) ; return
+	end
+	ore.Value = ore.Value - SCOUT_COST
+	spawnScout(position)
+	scoutsCount.Value = scoutsCount.Value + 1
+	fleet.Value = fleet.Value + 1
+	deployResult:FireClient(plr, true, "SCOUT DEPLOYED  —  -" .. SCOUT_COST .. " ore")
+end)
+
+----------------------------------------------------------------------
+-- Compute relay — tall pylon, grants compute and boosts nearby beacons.
+----------------------------------------------------------------------
+
+local RELAY_BOOST_RANGE = 180
+
+local relaysFolder = Workspace:FindFirstChild("PlayerRelays")
+if not relaysFolder then
+	relaysFolder = Instance.new("Folder") ; relaysFolder.Name = "PlayerRelays" ; relaysFolder.Parent = Workspace
+end
+
+local function spawnRelay(position)
+	deployCounter += 1
+	local model = Instance.new("Model") ; model.Name = "PlayerRelay_" .. deployCounter
+
+	local tower = plainPart(Vector3.new(1.2, 10, 1.2), METAL) ; tower.Position = position ; tower.Parent = model ; model.PrimaryPart = tower
+	local ringTop = plainPart(Vector3.new(0.6, 4, 4), NEON, Enum.Material.Neon) ; ringTop.Shape = Enum.PartType.Cylinder
+	ringTop.CFrame = CFrame.new(position + Vector3.new(0, 6, 0)) * CFrame.Angles(0, 0, math.rad(90))
+	ringTop.Parent = model
+	local glow = plainPart(Vector3.new(6, 6, 6), NEON, Enum.Material.ForceField) ; glow.Shape = Enum.PartType.Ball
+	glow.Position = position + Vector3.new(0, 6, 0) ; glow.Transparency = 0.7 ; glow.Parent = model
+	local light = Instance.new("PointLight") ; light.Brightness = 4 ; light.Range = 40 ; light.Color = NEON
+	light.Parent = ringTop
+
+	model.Parent = relaysFolder
+end
+
+deployRelay.OnServerEvent:Connect(function(plr, position)
+	if typeof(position) ~= "Vector3" then return end
+	if ore.Value < RELAY_COST then
+		deployResult:FireClient(plr, false, "INSUFFICIENT ORE  —  need " .. RELAY_COST) ; return
+	end
+	ore.Value = ore.Value - RELAY_COST
+	spawnRelay(position)
+	relaysCount.Value = relaysCount.Value + 1
+	deployResult:FireClient(plr, true, "RELAY ONLINE  —  -" .. RELAY_COST .. " ore")
+end)
+
+----------------------------------------------------------------------
 -- Production tick — only runs for owned assets
 ----------------------------------------------------------------------
 
@@ -281,6 +372,24 @@ task.spawn(function()
 		if claimFlag("Mining_Asteroid").Value  then computeGain += 0.005 end
 		computeGain += beaconsCount.Value * 0.004
 		computeGain += minersCount.Value  * 0.002
+		computeGain += relaysCount.Value  * 0.015
+		-- Extra: each relay boosts beacons within RELAY_BOOST_RANGE.
+		if relaysCount.Value > 0 and beaconsCount.Value > 0 then
+			local boosted = 0
+			for _, relay in ipairs(relaysFolder:GetChildren()) do
+				local rp = relay.PrimaryPart and relay.PrimaryPart.Position
+				if rp then
+					for _, node in ipairs(Workspace:GetChildren()) do
+						if node.Name:sub(1, 13) == "PlayerBeacon_" and node:IsA("Model") and node.PrimaryPart then
+							if (node.PrimaryPart.Position - rp).Magnitude < RELAY_BOOST_RANGE then
+								boosted += 1
+							end
+						end
+					end
+				end
+			end
+			computeGain += boosted * 0.003
+		end
 		if computeGain > 0 then
 			compute.Value = compute.Value + computeGain
 		end

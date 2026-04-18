@@ -11,7 +11,9 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local remotes = ReplicatedStorage:WaitForChild("EmpireRemotes", 10)
 local deployBeacon = remotes:WaitForChild("DeployBeacon")
-local deployMiner = remotes:WaitForChild("DeployMiner")
+local deployMiner  = remotes:WaitForChild("DeployMiner")
+local deployScout  = remotes:WaitForChild("DeployScout")
+local deployRelay  = remotes:WaitForChild("DeployRelay")
 local deployResult = remotes:WaitForChild("DeployResult")
 
 local screen = Instance.new("ScreenGui")
@@ -58,18 +60,18 @@ end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
 	if input.KeyCode == Enum.KeyCode.B then
-		local character = player.Character
-		if not character then return end
-		local root = character:FindFirstChild("HumanoidRootPart")
-		if not root then return end
 		deployBeacon:FireServer(root.Position)
 	elseif input.KeyCode == Enum.KeyCode.M then
-		local character = player.Character
-		if not character then return end
-		local root = character:FindFirstChild("HumanoidRootPart")
-		if not root then return end
 		deployMiner:FireServer(root.Position)
+	elseif input.KeyCode == Enum.KeyCode.G then
+		deployScout:FireServer(root.Position)
+	elseif input.KeyCode == Enum.KeyCode.R then
+		deployRelay:FireServer(root.Position)
 	end
 end)
 
@@ -79,7 +81,7 @@ task.spawn(function()
 	if not hudGui then return end
 	local hint = hudGui:FindFirstChild("ControlsHint")
 	if hint and hint:IsA("TextLabel") then
-		hint.Size = UDim2.new(0, 600, 0, 22)
-		hint.Text = "  WASD move  SPACE/SHIFT  Q boost  LMB fire  F scan  C claim  B beacon  M miner  "
+		hint.Size = UDim2.new(0, 720, 0, 22)
+		hint.Text = "  WASD  SPACE/SHIFT  Q boost  LMB fire  F scan  C claim  B beacon  M miner  G scout  R relay  "
 	end
 end)
