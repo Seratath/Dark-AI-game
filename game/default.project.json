@@ -24,6 +24,9 @@
       },
       "NetworkRelays": {
         "$path": "src/ServerScriptService/NetworkRelays.server.luau"
+      },
+      "JumpGateArrivals": {
+        "$path": "src/ServerScriptService/JumpGateArrivals.server.luau"
       }
     },
     "StarterPlayer": {
@@ -59,6 +62,9 @@
         },
         "SpeedReadout": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/SpeedReadout.client.luau"
+        },
+        "SensorSweep": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/SensorSweep.client.luau"
         }
       }
     }
