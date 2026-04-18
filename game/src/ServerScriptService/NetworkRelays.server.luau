@@ -71,12 +71,24 @@ local function makeBeacon(name, pos)
 	return model, core, halo, ring
 end
 
-local beacons = {
-	{ pos = Vector3.new( 320,  40, -100) },
-	{ pos = Vector3.new(  50, -30, -350) },
-	{ pos = Vector3.new( 500,  80,  180) },
-	{ pos = Vector3.new(-250,  60,  100) },
-}
+-- Place beacons in a ring orbiting the homeworld so the beams read as a
+-- satellite comms network instead of random lines across the sector.
+local homeworldAnchor = Workspace:WaitForChild("Planet_Homeworld", 5)
+local orbitCenter = homeworldAnchor and homeworldAnchor.Position or Vector3.new(500, 0, 0)
+local orbitRadius = (homeworldAnchor and homeworldAnchor.Size.X / 2 or 45) + 70
+
+local beacons = {}
+local BEACON_COUNT = 5
+for i = 1, BEACON_COUNT do
+	local angle = (i - 1) * (math.pi * 2 / BEACON_COUNT)
+	table.insert(beacons, {
+		pos = orbitCenter + Vector3.new(
+			math.cos(angle) * orbitRadius,
+			math.sin(angle * 2) * 15,
+			math.sin(angle) * orbitRadius
+		),
+	})
+end
 
 local beaconData = {}
 for i, b in ipairs(beacons) do
