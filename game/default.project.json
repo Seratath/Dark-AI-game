@@ -29,6 +29,15 @@
         },
         "EmpireHUD": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/EmpireHUD.client.luau"
+        },
+        "ProbeScanner": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/ProbeScanner.client.luau"
+        },
+        "SpaceDust": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/SpaceDust.client.luau"
+        },
+        "Minimap": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/Minimap.client.luau"
         }
       }
     }
