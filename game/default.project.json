@@ -6,6 +6,12 @@
       "$className": "ServerScriptService",
       "SetupScene": {
         "$path": "src/ServerScriptService/SetupScene.server.luau"
+      },
+      "EmpireDressing": {
+        "$path": "src/ServerScriptService/EmpireDressing.server.luau"
+      },
+      "SpaceDressing": {
+        "$path": "src/ServerScriptService/SpaceDressing.server.luau"
       }
     },
     "StarterPlayer": {
@@ -20,6 +26,9 @@
         "$className": "StarterPlayerScripts",
         "PlanetInteraction": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/PlanetInteraction.client.luau"
+        },
+        "EmpireHUD": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/EmpireHUD.client.luau"
         }
       }
     }

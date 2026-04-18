@@ -105,6 +105,36 @@ local bloom = ball(3.2, Color3.fromRGB(120, 220, 255), Enum.Material.Neon)
 bloom.Transparency = 0.55
 attach(bloom, Vector3.new(0, 0, 13.8))
 
+-- Trailing exhaust streak
+local a0 = Instance.new("Attachment")
+a0.Position = Vector3.new(0, 0.6, 0)
+a0.Parent = engineCore
+
+local a1 = Instance.new("Attachment")
+a1.Position = Vector3.new(0, -0.6, 0)
+a1.Parent = engineCore
+
+local trail = Instance.new("Trail")
+trail.Attachment0 = a0
+trail.Attachment1 = a1
+trail.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 235, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0,  120, 220)),
+})
+trail.Transparency = NumberSequence.new({
+	NumberSequenceKeypoint.new(0, 0.3),
+	NumberSequenceKeypoint.new(1, 1),
+})
+trail.Lifetime = 0.8
+trail.MinLength = 0.05
+trail.WidthScale = NumberSequence.new({
+	NumberSequenceKeypoint.new(0, 1),
+	NumberSequenceKeypoint.new(1, 0.1),
+})
+trail.LightEmission = 1
+trail.FaceCamera = true
+trail.Parent = engineCore
+
 -- ── Physics movers ────────────────────────────────────────────────────────
 local bodyVelocity = Instance.new("BodyVelocity")
 bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
