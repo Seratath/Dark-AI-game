@@ -22,6 +22,8 @@ local DIM   = Color3.fromRGB(120, 140, 170)
 local empireState = ReplicatedStorage:WaitForChild("EmpireState", 10)
 local claimedFolder  = empireState and empireState:WaitForChild("Claimed", 5)
 local deployedFolder = empireState and empireState:WaitForChild("Deployed", 5)
+local threatFolder   = empireState and empireState:WaitForChild("Threat", 10)
+local raidersKilledVal = threatFolder and threatFolder:WaitForChild("RaidersKilled", 5)
 local localScans = player:WaitForChild("LocalScans", 10)
 
 ----------------------------------------------------------------------
@@ -55,6 +57,10 @@ end
 local function minerCount()
 	local f = deployedFolder and deployedFolder:FindFirstChild("Miners")
 	return f and f.Value or 0
+end
+
+local function raidersKilled()
+	return raidersKilledVal and raidersKilledVal.Value or 0
 end
 
 ----------------------------------------------------------------------
@@ -133,6 +139,22 @@ local steps = {
 		short  = "DEPLOY",
 		done   = function() return minerCount() >= 1 end,
 		flash  = "Drone operational. Ore is now flowing.",
+	},
+	{
+		title  = "INVESTIGATE DERELICT WRECK",
+		body   = "A faint distress pulse is coming from a broken hull elsewhere in the sector. Find it.",
+		target = "Wreck_Hull",
+		short  = "WRECK",
+		done   = function() return distanceTo("Wreck_Hull") < 300 end,
+		flash  = "Signal source located.",
+	},
+	{
+		title  = "DESTROY THE RAIDER",
+		body   = "The wreck was bait. LMB fires your laser. Your shields (Energy) regenerate. Finish it.",
+		target = "PirateRaider",
+		short  = "HOSTILE",
+		done   = function() return raidersKilled() >= 1 end,
+		flash  = "Raider down. So much for a quiet sector.",
 	},
 	{
 		title  = "ONBOARDING COMPLETE",

@@ -51,6 +51,8 @@ local raiderHpVal = Instance.new("NumberValue")
 raiderHpVal.Name = "RaiderHP" ; raiderHpVal.Value = RAIDER_MAX_HP ; raiderHpVal.Parent = threat
 local raiderHpMaxVal = Instance.new("NumberValue")
 raiderHpMaxVal.Name = "RaiderHPMax" ; raiderHpMaxVal.Value = RAIDER_MAX_HP ; raiderHpMaxVal.Parent = threat
+local raidersKilled = Instance.new("IntValue")
+raidersKilled.Name = "RaidersKilled" ; raidersKilled.Value = 0 ; raidersKilled.Parent = threat
 
 local remotes = ReplicatedStorage:WaitForChild("EmpireRemotes")
 local function ensureRemote(name)
@@ -159,15 +161,22 @@ end
 -- Raider AI
 ----------------------------------------------------------------------
 
-local resourceWorld = Workspace:WaitForChild("Planet_Resource", 10)
-local patrolCenter = (resourceWorld and resourceWorld.Position) or Vector3.new(-900, 0, -1100)
-local patrolRadius = (resourceWorld and resourceWorld.Size.X / 2 + 28) or 90
+-- Raider patrols the derelict wreck — it was the reason the wreck
+-- exists. It only spawns when a player investigates the wreck, so the
+-- tutorial zone stays safe. Once triggered, raider respawns after
+-- RESPAWN_TIME on the next player approach.
+local WRECK_SPAWN_RANGE = 420
+
+local wreckPart = Workspace:WaitForChild("Wreck_Hull", 15)
+local patrolCenter = (wreckPart and wreckPart.Position) or Vector3.new(-180, -40, 420)
+local patrolRadius = 60
 
 local state = "Patrol"
 local patrolPhase = 0
 local fireTimer = 0
-local alive = true
+local alive = false          -- do not spawn at game start
 local lastWarn = 0
+local cooldownUntil = 0      -- suppress respawn until this time
 
 local function setWarning(msg)
 	warningMsg.Value = msg
@@ -205,22 +214,37 @@ end
 local function raiderDeath(lastPos)
 	alive = false
 	activeHostiles.Value = 0
+	raidersKilled.Value = raidersKilled.Value + 1
 	setWarning("HOSTILE DESTROYED  —  +" .. RAIDER_ORE_REWARD .. " ore")
 	ore.Value = ore.Value + RAIDER_ORE_REWARD
 	explosion(lastPos, HOSTILE, 18)
 	if raiderModel then raiderModel:Destroy() ; raiderModel = nil end
-	task.delay(RESPAWN_TIME, function()
-		buildRaider()
-		raiderHpVal.Value = RAIDER_MAX_HP
-		state = "Patrol"
-		alive = true
-		activeHostiles.Value = 0
-	end)
+	cooldownUntil = os.clock() + RESPAWN_TIME
+	raiderHpVal.Value = RAIDER_MAX_HP
+	state = "Patrol"
 end
 
-buildRaider()
+local function spawnRaider(at)
+	buildRaider()
+	placeRaiderRig(CFrame.new(at))
+	alive = true
+	raiderHpVal.Value = RAIDER_MAX_HP
+	activeHostiles.Value = 1
+	state = "Patrol"
+	patrolPhase = 0
+	explosion(at, HOSTILE, 14)
+	setWarning("HOSTILE WARP-IN  —  the wreck was bait")
+end
 
 RunService.Heartbeat:Connect(function(dt)
+	-- Proximity spawn near the wreck (once cooldown elapses)
+	if not alive and not raiderModel and os.clock() >= cooldownUntil then
+		local nearest = nearestPlayerRoot(patrolCenter)
+		if nearest and (nearest.Position - patrolCenter).Magnitude < WRECK_SPAWN_RANGE then
+			spawnRaider(patrolCenter + Vector3.new(0, 30, 0))
+		end
+	end
+
 	if not alive or not raiderModel or not raiderModel.Parent then return end
 
 	local myPos = rHull.Position
