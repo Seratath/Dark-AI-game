@@ -58,11 +58,14 @@ body.Font = Enum.Font.Code
 body.TextSize = 14
 body.Parent = frame
 
+local rng = Random.new(os.time() + player.UserId)
+local designation = string.format("VON-%03d", rng:NextInteger(1, 999))
+
 local lines = {
-	"> Probe unit online. Designation: Von Neumann 01.",
-	"> Home network: 3 worlds, 1 colony, 1 fleet scout.",
-	"> Directive: expand. Catalogue. Replicate.",
-	"> Threats detected in local sector. Proceed with discretion.",
+	"> Probe online. Designation: " .. designation .. ".",
+	"> Welcome, probe " .. designation .. ". Sensors warm. Drive nominal.",
+	"> Directive: locate the Homeworld. Scan. Claim.",
+	"> A network grown from a single probe. Begin.",
 }
 
 local function typeLine(text)

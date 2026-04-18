@@ -40,6 +40,20 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local camera = Workspace.CurrentCamera
 
+-- LocalScans bus: per-contact BoolValue flipped true on scan complete.
+-- Tutorial reads this to advance scan-required steps without touching
+-- ScannerSystem internals.
+local localScans = Instance.new("Folder")
+localScans.Name = "LocalScans"
+localScans.Parent = player
+local function setScanned(name)
+	local f = localScans:FindFirstChild(name)
+	if not f then
+		f = Instance.new("BoolValue") ; f.Name = name ; f.Parent = localScans
+	end
+	f.Value = true
+end
+
 local NEON   = Color3.fromRGB(0, 220, 255)
 local AMBER  = Color3.fromRGB(255, 200, 100)
 local GREEN  = Color3.fromRGB(120, 230, 160)
@@ -422,6 +436,7 @@ local function completeScan(contact)
 	progress.Visible = false
 	progressFill.Size = UDim2.new(0, 0, 1, -4)
 	promote(contact)
+	setScanned(contact.name)
 	spawnPulse(contact.anchor.Position, contact.catalog.color)
 	if scanRemote then scanRemote:FireServer(contact.name) end
 	flashText.Text = "SCAN COMPLETE  —  " .. contact.catalog.label

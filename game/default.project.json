@@ -57,8 +57,8 @@
         "Minimap": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/Minimap.client.luau"
         },
-        "Objectives": {
-          "$path": "src/StarterPlayer/StarterPlayerScripts/Objectives.client.luau"
+        "Tutorial": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/Tutorial.client.luau"
         },
         "CommsIntro": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/CommsIntro.client.luau"
