@@ -16,11 +16,25 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local scanRemote
+local scanRemote, claimRemote, claimResult, claimedFolder
 task.spawn(function()
 	local remotes = ReplicatedStorage:WaitForChild("EmpireRemotes", 10)
-	if remotes then scanRemote = remotes:WaitForChild("ScanCompleted", 5) end
+	if remotes then
+		scanRemote   = remotes:WaitForChild("ScanCompleted", 5)
+		claimRemote  = remotes:WaitForChild("ClaimWorld", 5)
+		claimResult  = remotes:WaitForChild("ClaimResult", 5)
+	end
+	local es = ReplicatedStorage:WaitForChild("EmpireState", 10)
+	if es then claimedFolder = es:WaitForChild("Claimed", 5) end
 end)
+
+local CLAIMABLE_SET = {
+	Planet_Homeworld = true,
+	Planet_Resource  = true,
+	Planet_Barren    = true,
+	Mining_Asteroid  = true,
+}
+local CLAIM_RANGE = 280
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -202,6 +216,32 @@ progressLabel.TextSize = 12
 progressLabel.Text = "SCANNING  —  0%"
 progressLabel.Parent = progress
 
+-- Claim prompt (offset from scan prompt so both can coexist visually)
+local claimPrompt = Instance.new("Frame")
+claimPrompt.Size = UDim2.new(0, 280, 0, 34)
+claimPrompt.AnchorPoint = Vector2.new(0.5, 0)
+claimPrompt.Position = UDim2.new(0.5, 0, 0.58, 0)
+claimPrompt.BackgroundColor3 = Color3.fromRGB(10, 16, 28)
+claimPrompt.BackgroundTransparency = 0.25
+claimPrompt.BorderSizePixel = 0
+claimPrompt.Visible = false
+claimPrompt.Parent = screen
+
+local cpCorner = Instance.new("UICorner") ; cpCorner.CornerRadius = UDim.new(0, 6) ; cpCorner.Parent = claimPrompt
+local cpStroke = Instance.new("UIStroke") ; cpStroke.Color = Color3.fromRGB(255, 220, 120) ; cpStroke.Thickness = 1 ; cpStroke.Transparency = 0.2
+cpStroke.Parent = claimPrompt
+
+local claimPromptText = Instance.new("TextLabel")
+claimPromptText.Size = UDim2.new(1, -12, 1, 0)
+claimPromptText.Position = UDim2.new(0, 6, 0, 0)
+claimPromptText.BackgroundTransparency = 1
+claimPromptText.TextXAlignment = Enum.TextXAlignment.Center
+claimPromptText.Text = "[C] CLAIM"
+claimPromptText.TextColor3 = Color3.fromRGB(255, 220, 120)
+claimPromptText.Font = Enum.Font.GothamBold
+claimPromptText.TextSize = 14
+claimPromptText.Parent = claimPrompt
+
 -- Interrupt flash
 local flashText = Instance.new("TextLabel")
 flashText.Size = UDim2.new(0, 300, 0, 24)
@@ -347,6 +387,19 @@ local function promote(contact)
 	TweenService:Create(contact.row, TweenInfo.new(0.8), { BackgroundColor3 = orig }):Play()
 end
 
+local function markClaimed(contact)
+	contact.dot.Text = "◆"
+	contact.dot.TextColor3 = Color3.fromRGB(255, 220, 120)
+	contact.detailLbl.Text = "CLAIMED"
+	contact.detailLbl.TextColor3 = Color3.fromRGB(255, 220, 120)
+end
+
+local function isClaimed(name)
+	if not claimedFolder then return false end
+	local f = claimedFolder:FindFirstChild(name)
+	return f and f.Value or false
+end
+
 ----------------------------------------------------------------------
 -- Scan state machine
 ----------------------------------------------------------------------
@@ -396,9 +449,11 @@ end
 ----------------------------------------------------------------------
 
 local fHeld = false
+local cPressed = false
 UserInputService.InputBegan:Connect(function(input, processed)
 	if processed then return end
 	if input.KeyCode == Enum.KeyCode.F then fHeld = true end
+	if input.KeyCode == Enum.KeyCode.C then cPressed = true end
 end)
 UserInputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.F then
@@ -406,6 +461,39 @@ UserInputService.InputEnded:Connect(function(input)
 		if scanning then cancelScan("SCAN CANCELLED") end
 	end
 end)
+
+local function findClaimTarget(rootPos)
+	local best, bestDist = nil, math.huge
+	for _, c in pairs(contacts) do
+		if c.stage >= 2 and CLAIMABLE_SET[c.name] and not isClaimed(c.name) and c.anchor.Parent then
+			local d = (c.anchor.Position - rootPos).Magnitude
+			if d < CLAIM_RANGE and d < bestDist then
+				best, bestDist = c, d
+			end
+		end
+	end
+	return best, bestDist
+end
+
+if claimResult then
+	claimResult.OnClientEvent:Connect(function(ok, msg)
+		flashText.TextColor3 = ok and GREEN or Color3.fromRGB(255, 120, 120)
+		flashText.Text = msg
+		task.delay(2, function()
+			if flashText.Text == msg then flashText.Text = "" end
+		end)
+	end)
+end
+
+-- Refresh list rows when claims change
+if claimedFolder then
+	for _, flag in ipairs(claimedFolder:GetChildren()) do
+		flag:GetPropertyChangedSignal("Value"):Connect(function()
+			local c = contacts[flag.Name]
+			if c and flag.Value then markClaimed(c) end
+		end)
+	end
+end
 
 ----------------------------------------------------------------------
 -- Main loop
@@ -474,6 +562,20 @@ RunService.Heartbeat:Connect(function(dt)
 			prompt.Visible = false
 		end
 	end
+
+	-- Claim prompt (independent of scanning)
+	local claimTarget, claimDist = findClaimTarget(root.Position)
+	if claimTarget and not scanning then
+		claimPrompt.Visible = true
+		claimPromptText.Text = string.format("[C] CLAIM  —  %s (%d st)", claimTarget.catalog.label, math.floor(claimDist))
+		if cPressed and claimRemote then
+			cPressed = false
+			claimRemote:FireServer(claimTarget.name, root.Position)
+		end
+	else
+		claimPrompt.Visible = false
+	end
+	cPressed = false
 end)
 
 ----------------------------------------------------------------------

@@ -22,9 +22,6 @@
       "WorldMotion": {
         "$path": "src/ServerScriptService/WorldMotion.server.luau"
       },
-      "MiningOps": {
-        "$path": "src/ServerScriptService/MiningOps.server.luau"
-      },
       "BackgroundTraffic": {
         "$path": "src/ServerScriptService/BackgroundTraffic.server.luau"
       },

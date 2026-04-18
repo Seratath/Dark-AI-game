@@ -144,6 +144,38 @@ gateLight.Brightness = 4 ; gateLight.Range = 60 ; gateLight.Color = NEON
 gateLight.Parent = gateRing
 
 ----------------------------------------------------------------------
+-- Mother mining asteroid near the resource world — claimable ore source.
+-- Previously created by MiningOps (now deleted, since drones only spawn
+-- when the player deploys them).
+----------------------------------------------------------------------
+
+local resourceForAsteroid = Workspace:WaitForChild("Planet_Resource", 5)
+if resourceForAsteroid then
+	local ac = resourceForAsteroid.Position + Vector3.new(80, 30, 80)
+	local rock = Instance.new("Part")
+	rock.Name = "Mining_Asteroid"
+	rock.Shape = Enum.PartType.Ball
+	rock.Size = Vector3.new(18, 14, 20)
+	rock.Position = ac
+	rock.Anchored = true ; rock.CanCollide = false ; rock.CastShadow = false
+	rock.Material = Enum.Material.Slate
+	rock.Color = Color3.fromRGB(120, 95, 70)
+	rock.Parent = Workspace
+
+	for i = 1, 4 do
+		local vein = Instance.new("Part")
+		vein.Name = "Ore_Vein"
+		vein.Size = Vector3.new(2.5, 0.4, 2.5)
+		vein.Material = Enum.Material.Neon
+		vein.Color = Color3.fromRGB(255, 220, 120)
+		vein.Anchored = true ; vein.CanCollide = false ; vein.CastShadow = false
+		local angle = i * math.pi / 2 + 0.3
+		vein.CFrame = CFrame.new(ac) * CFrame.Angles(angle, angle * 0.7, 0) * CFrame.new(0, 7, 0)
+		vein.Parent = Workspace
+	end
+end
+
+----------------------------------------------------------------------
 -- Pirate raider — angular hostile ship circling the resource world
 ----------------------------------------------------------------------
 
