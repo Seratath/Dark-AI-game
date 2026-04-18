@@ -39,7 +39,7 @@ screen.Parent = playerGui
 -- Banner under HUD (top-right area)
 local banner = Instance.new("Frame")
 banner.Size = UDim2.new(0, 280, 0, 50)
-banner.Position = UDim2.new(1, -296, 0, 200)
+banner.Position = UDim2.new(1, -296, 0, 240)
 banner.BackgroundColor3 = Color3.fromRGB(10, 16, 28)
 banner.BackgroundTransparency = 0.25
 banner.BorderSizePixel = 0

@@ -45,8 +45,8 @@
         "EmpireHUD": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/EmpireHUD.client.luau"
         },
-        "ProbeScanner": {
-          "$path": "src/StarterPlayer/StarterPlayerScripts/ProbeScanner.client.luau"
+        "ScannerSystem": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/ScannerSystem.client.luau"
         },
         "SpaceDust": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/SpaceDust.client.luau"
