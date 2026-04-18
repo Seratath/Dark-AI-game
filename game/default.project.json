@@ -10,6 +10,9 @@
       "EmpireState": {
         "$path": "src/ServerScriptService/EmpireState.server.luau"
       },
+      "DeploymentService": {
+        "$path": "src/ServerScriptService/DeploymentService.server.luau"
+      },
       "EmpireDressing": {
         "$path": "src/ServerScriptService/EmpireDressing.server.luau"
       },
@@ -68,6 +71,9 @@
         },
         "SensorSweep": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/SensorSweep.client.luau"
+        },
+        "DeployController": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/DeployController.client.luau"
         }
       }
     }
