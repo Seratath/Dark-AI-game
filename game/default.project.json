@@ -30,6 +30,9 @@
       },
       "JumpGateArrivals": {
         "$path": "src/ServerScriptService/JumpGateArrivals.server.luau"
+      },
+      "CombatService": {
+        "$path": "src/ServerScriptService/CombatService.server.luau"
       }
     },
     "StarterPlayer": {
@@ -71,6 +74,9 @@
         },
         "DeployController": {
           "$path": "src/StarterPlayer/StarterPlayerScripts/DeployController.client.luau"
+        },
+        "ProbeCombat": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts/ProbeCombat.client.luau"
         }
       }
     }
