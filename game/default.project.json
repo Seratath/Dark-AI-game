@@ -21,6 +21,9 @@
       },
       "BackgroundTraffic": {
         "$path": "src/ServerScriptService/BackgroundTraffic.server.luau"
+      },
+      "NetworkRelays": {
+        "$path": "src/ServerScriptService/NetworkRelays.server.luau"
       }
     },
     "StarterPlayer": {
